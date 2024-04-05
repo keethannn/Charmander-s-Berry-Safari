@@ -1,0 +1,93 @@
+lines= """
+	sw $t1, 8($s0)
+	sw $t1, 16($s0)
+	sw $t1, 20($s0)
+	sw $t1, 24($s0)
+	sw $t1, 28($s0)
+	
+	sw $t1, 260($s0)
+	sw $t2, 264($s0)
+	sw $t1, 268($s0)
+	sw $t4, 272($s0)
+	sw $t5, 276($s0)
+	sw $t5, 280($s0)
+	sw $t5, 284($s0)
+	sw $t1, 288($s0)
+	
+	sw $t1, 512($s0)
+	sw $t2, 516($s0)
+	sw $t3, 520($s0)
+	sw $t1, 524($s0)
+	sw $t4, 528($s0)
+	sw $t7, 532($s0)
+	sw $t5, 536($s0)
+	sw $t7, 540($s0)
+	sw $t1, 544($s0)
+	
+	sw $t1, 768($s0)
+	sw $t3, 772($s0)
+	sw $t6, 776($s0)
+	sw $t1, 780($s0)
+	sw $t4, 784($s0)
+	sw $t5, 788($s0)
+	sw $t5, 792($s0)
+	sw $t5, 796($s0)
+	sw $t1, 800($s0)
+	
+	sw $t1, 1024($s0)
+	sw $t6, 1028($s0)
+	sw $t6, 1032($s0)
+	sw $t1, 1036($s0)
+	sw $t5, 1040($s0)
+	sw $t6, 1044($s0)
+	sw $t6, 1048($s0)
+	sw $t1, 1052($s0)
+	
+	sw $t1, 1284($s0)
+	sw $t5, 1288($s0)
+	sw $t1, 1292($s0)
+	sw $t4, 1296($s0)
+	sw $t5, 1300($s0)
+	sw $t6, 1304($s0)
+	sw $t4, 1308($s0)
+	sw $t1, 1312($s0)
+	
+	sw $t1, 1540($s0)
+	sw $t5, 1544($s0)
+	sw $t4, 1548($s0)
+	sw $t5, 1552($s0)
+	sw $t6, 1556($s0)
+	sw $t6, 1560($s0)
+	sw $t1, 1564($s0)
+	
+	sw $t1, 1796($s0)
+	sw $t4, 1800($s0)
+	sw $t5, 1804($s0)
+	sw $t5, 1808($s0)
+	sw $t6, 1812($s0)
+	sw $t6, 1816($s0)
+	sw $t1, 1820($s0)
+	
+	sw $t1, 2056($s0)
+	sw $t4, 2060($s0)
+	sw $t5, 2064($s0)
+	sw $t1, 2068($s0)
+	sw $t4, 2072($s0)
+	sw $t4, 2076($s0)
+	sw $t1, 2080($s0)
+	
+	sw $t1, 2316($s0)
+	sw $t1, 2320($s0)
+	sw $t1, 2328($s0)
+	sw $t1, 2332($s0)"""
+	
+lines = lines.splitlines()
+lines[:] = [x for x in lines if x.strip()]
+
+for line in lines:
+    sw = line.split()
+    address = sw[2]
+    offset = address.split("(")
+    number = int(offset[0])
+    number = number + 256
+    print("\t" + sw[0] + " " + sw[1] + " " + str(number) + "(" + offset[1])
