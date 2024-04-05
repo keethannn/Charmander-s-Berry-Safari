@@ -235,6 +235,7 @@ charmander_left_static:
 	jr $ra
 	
 charmander_left_jump:
+	
 	sw $t1, 280($s0)
         sw $t1, 272($s0)
         sw $t1, 268($s0)

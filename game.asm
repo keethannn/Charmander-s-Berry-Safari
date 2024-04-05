@@ -79,63 +79,71 @@ main_loop:
 	add $s0, $s0, $t1		
 	sw $s0, 8($s1)			#store this coordinates before updating
 	
-key_fetch: 
+key_action: 
 	li $t9, 0xffff0000  
 	lw $t8, 0($t9) 
-	bne $t8, 1, vertical
-	
-key_action: 
+	bne $t8, 1, gravity_collision_check 
 	lw $t0, 0($s1) 			# load x coordinate	
 	lw $t1, 4($s1)			# load y coordinate
 	
 	lw $t8, 4($t9)                  # checks input from keyboard
-	beq $t8, 0x70, restart   	# checks if 'p' is pressed
 	beq $t8, 0x61, key_left   	# checks if 'a' is pressed
 	beq $t8, 0x64, key_right   	# checks if 'd' is pressed
 	beq $t8, 0x77, key_up   	# checks if 'w' is pressed
+	beq $t8, 0x70, restart   	# checks if 'p' is pressed
 	
-	j vertical
+	
+	j gravity_collision_check
 	
 restart:
 	j main 
 	
 key_left:
 	#if touching left boundary, skip
-	beq $t0, 0, vertical
+	beq $t0, 0, gravity_collision_check
 	
 	#set previous y-coordinate to potential 1d marker and check for collisions
 	addi $t1, $s0, -4
 	
 	# check all pixels to the left of sprite
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, vertical
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 256($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 512($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 768($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 1024($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 1280($t1)
-	bne $t2, BACKGROUND, vertical	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check	
 	
-	lw $t2, 1536($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 1792($t1)
-	bne $t2, BACKGROUND, vertical	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check	
 	
-	lw $t2, 2048($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 2304($t1)
-	bne $t2, BACKGROUND, vertical		
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check		
 	
 	addi $s0, $s0, -4	#update unit coordinate
 	addi $t0, $t0, -1	#update charmander location
@@ -149,41 +157,50 @@ key_left:
 	
 key_right:
 	#if touching right boundary, skip
-	beq $t0, 55, vertical
+	beq $t0, 55, gravity_collision_check
 	
 	#set previous y-coordinate to potential 1d marker and check for collisions
 	addi $t1, $s0, 36
 	
 	# check all pixels to the right of sprite
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, vertical
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 256($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 512($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 768($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 		
-	lw $t2, 1024($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 1280($t1)
-	bne $t2, BACKGROUND, vertical	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check	
 	
-	lw $t2, 1536($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 1792($t1)
-	bne $t2, BACKGROUND, vertical	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check	
 	
-	lw $t2, 2048($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 
-	lw $t2, 2304($t1)
-	bne $t2, BACKGROUND, vertical
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	bne $t2, BACKGROUND, gravity_collision_check
 	
 	addi $s0, $s0, 4
 	addi $t0, $t0, 1
@@ -202,22 +219,21 @@ update_movement_iteration:
 	beq $t0, 3, reset_movement_iteration
 	addi $t0, $t0, 1
 	sw $t0, 0($s3)
-	j vertical 
+	j gravity_collision_check 
 
 reset_movement_iteration:
 	sw $zero, 0($s3)
-	j vertical
+	j gravity_collision_check
 	
 key_up:
 	#set vertical state to jump but need to check conditions
 	li $t0, 2
 	sw $t0, 4($s2)
+	#set animation state to start of jump
 	li $t0, 1
 	sw $t0, 4($s3)
 	
-	j vertical
-	
-vertical:
+gravity_collision_check:
 	lw $t0, 4($s2)
 	
 below_collision:
@@ -253,8 +269,7 @@ below_collision:
 	
 	li $t1, 0		#set below_floor status to no
 	sw $t1, 12($s2)
-	
-	
+
 	lw $t1, 8($s2)		#check if in middle of jump
 	bne $t1, 0, is_jump_apex 
 	
@@ -262,7 +277,8 @@ fall_state:
 	#set fall state
 	li $t0, 0
 	sw $t0, 4($s2)
-	
+
+shift_down:	
 	#offset y coordinate 1 unit down 
 	lw $t0, 4($s1)
 	addi $t0, $t0, 1
@@ -271,7 +287,7 @@ fall_state:
 	#offset player coordinate by one row
 	addi $s0, $s0, 256
 	
-	j vertical_complete
+	j gravity_collision_complete
 	
 floor_below:
 	
@@ -281,22 +297,17 @@ floor_below:
 	sw $zero, 8($s2)
 	
 	lw $t0, 4($s2)
-	beq $t0, 2, above_collision
+	beq $t0, 2, floor_above
 	
 	
 	#if vertical state is not jump, then vertically stationary
 	li $t1, 1
 	sw $t1, 4($s2)
 	
-	j vertical_complete
+	j gravity_collision_complete
  
 is_jump_apex:
 	bge $t1, MAX_JUMP_HEIGHT, fall_state
-	
-above_collision: 
-	lw $t1, 4($s1)
-	bgt $t1, 0, floor_above
-	j above_collision_state
 	
 floor_above:
 	subi $t1, $s0, 256
@@ -328,12 +339,69 @@ floor_above:
 	
 	lw $t2, 32($t1)				
 	bne $t2, BACKGROUND, above_collision_state
-shift_up:
-	li $t0, 2
-	sw $t0, 4($s2)
+	
+	#set sprite to be jumping animation
 	li $t0, 1
 	sw $t0, 4($s3)
 	
+	subi $t1, $t1, 256
+
+check_if_one_below_floor: 
+	#check if sprite is about to touch top, and switch to static
+	lw $t2, 0($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+
+	lw $t2, 4($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+	
+	lw $t2, 8($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision	
+	
+	lw $t2, 12($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+
+	lw $t2, 16($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+	
+	lw $t2, 20($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+	
+	lw $t2, 24($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+
+	lw $t2, 28($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+	
+	lw $t2, 32($t1)				
+	bne $t2, BACKGROUND, static_on_above_collision
+	
+	j shift_up
+	
+static_on_above_collision:
+	#set sprite to be static animation
+	li $t0, 0
+	sw $t0, 4($s3)
+	
+	j shift_up
+
+above_collision_state:
+	sw $zero, 8($s2)
+	
+	lw $t0, 12($s2)
+	beq $t0, 0, fall_state
+	
+	li $t0, 1 
+	sw $t0, 4($s2) 
+	
+	j gravity_collision_complete
+
+shift_up:
+	#set vertical state to up
+	li $t0, 2
+	sw $t0, 4($s2)
+	
+	
+	# decrement unit-coordinate
 	subi $s0, $s0, 256
 	
 	lw $t0, 4($s1)
@@ -344,20 +412,12 @@ shift_up:
 	addi $t0, $t0, 1
 	sw $t0, 8($s2)
 	
-	j vertical_complete
-	
-above_collision_state:
-	sw $zero, 8($s2)
-	lw $t0, 12($s2)
-	beq $t0, 0, fall_state
-	
-	li $t0, 1 
-	sw $t0, 4($s2) 
-vertical_complete:
+gravity_collision_complete:
 
 	lw $t0, 0($s2)
 	lw $t1, 4($s2)
 
+	#only redraw if vertical and horizontal states have been changed
 	bne $t0, 1, redraw_charmander
 	bne $t1, 1, redraw_charmander
 	
@@ -457,6 +517,7 @@ redraw_charmander:
 			j loop_end   
 			
 loop_end:
+	#reset horizontal and vertical direction
 	li $t0, 1
 	sw $t0, 0($s2)
 	sw $t0, 4($s2)
