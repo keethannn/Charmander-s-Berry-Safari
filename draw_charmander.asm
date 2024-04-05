@@ -6,14 +6,30 @@
 .eqv L_ORANGE 0xf85d00
 .eqv YELLOW 0xf8e100
 .eqv D_GREEN 0x02754f
+.eqv DIE 0xffffff
 
 
+
+die_charmander:
+	li $t1, DIE
+	li $t2, DIE
+	li $t3, DIE
+	li $t4, DIE
+	li $t5, DIE
+	li $t6, DIE
+	li $t7, DIE
+	lw $t8, 8($s3)
+	
+	beq $t8, 0, charmander_left_static
+	beq $t8, 1, charmander_right_static
 
 erase_charmander:
 	
 	li $t0, BACKGROUND
 	move $t1, $s0
-	
+	j draw_block
+
+draw_block:
 	#row 1
 	sw $t0, 0($t1)
 	sw $t0, 4($t1)

@@ -57,6 +57,7 @@
 CHARMANDER_XY: .word 0, 12, 0, 0 #[current x, current y, previous unit-coordinate, new unit coordinate]
 CHARMANDER_DIRECTION_STATE: .word 1, 1, 0, 1   #[{0 if left, 1 if stationary, 2 if right}, {0 if falling, 1 if stationary, 2 if up}, {jump iteration}, {0 if no floor, 1 if on floor}]
 SPRITE_ANIMATION: .word 0,0,1 #[movement iteration: 0-3 , jump: 0-1, direction facing: 0-1]
+GAME_STATE: .word 0, 3, 0, 12, 0, 0 #[stage: 0-3, lives: 0-3, spawn-x:0-55, spawn-y:10-63, background:color-code, berry color: color-code]
 
 .text
 .globl 	main
@@ -65,19 +66,51 @@ main:
 	la $s1, CHARMANDER_XY
 	la $s2, CHARMANDER_DIRECTION_STATE
 	la $s3, SPRITE_ANIMATION
+	la $s4, GAME_STATE
 	li $s7, DISPLAY_BASE
 	
 	jal draw_level
-	
+
 main_loop: 	
 	lw $t0, 0($s1) 				
 	lw $t1, 4($s1)
 	
-	sll $t0, $t0, 2 		#find x pixel coordinate
-	sll $t1, $t1, 8 		#find y pixel coordinate
+	li $t2, 4
+	mult $t0, $t2 		#find x pixel coordinate
+	mflo $t0
+	li $t2, 256
+	mult $t1, $t2
+	mflo $t1 		#find y pixel coordinate
 	addi $s0, $t0, DISPLAY_BASE 	#add coordinates to display base for top-left of sprite
 	add $s0, $s0, $t1		
-	sw $s0, 8($s1)			#store this coordinates before updating
+	sw $s0, 8($s1)			#store this coordinate before updating
+	
+check_if_in_liquid:
+	lw $t1, 4($s1)
+	bge $t1, 45, fall_in_liquid
+	
+	j key_action
+	
+fall_in_liquid:
+	
+	jal die_charmander
+
+	li $v0, 32 
+	li $a0, 500 			
+	syscall
+	
+	jal erase_charmander
+		
+	j respawn
+
+respawn: 
+	lw $t0, 8($s4) 				
+	lw $t1, 12($s4)
+	
+	sw $t0, 0($s1)
+	sw $t1, 4($s1)
+	
+	j main_loop
 	
 key_action: 
 	li $t9, 0xffff0000  
@@ -271,7 +304,11 @@ below_collision:
 	sw $t1, 12($s2)
 
 	lw $t1, 8($s2)		#check if in middle of jump
-	bne $t1, 0, is_jump_apex 
+	bne $t1, 0, is_jump_apex
+	j fall_state 
+	
+is_jump_apex:
+	blt $t1, MAX_JUMP_HEIGHT, floor_above
 	
 fall_state:
 	#set fall state
@@ -305,9 +342,7 @@ floor_below:
 	sw $t1, 4($s2)
 	
 	j gravity_collision_complete
- 
-is_jump_apex:
-	bge $t1, MAX_JUMP_HEIGHT, fall_state
+
 	
 floor_above:
 	subi $t1, $s0, 256
