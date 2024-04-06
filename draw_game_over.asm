@@ -1,4 +1,5 @@
-li $t9 0x000000
+draw_game_over:
+	li $t9 0x000000
 sw $t9 0($s7)
 sw $t9 4($s7)
 sw $t9 8($s7)
@@ -5924,3 +5925,4 @@ sw $t9 16372($s7)
 sw $t9 16376($s7)
 li $t9 0x787878
 sw $t9 16380($s7)
+jr $ra

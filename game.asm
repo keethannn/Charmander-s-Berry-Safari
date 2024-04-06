@@ -36,8 +36,12 @@
 .include "draw_level_1.asm"
 .include "draw_level_2.asm"
 .include "draw_level_3.asm"
+.include "draw_menu_go.asm"
+.include "draw_menu_quit.asm"
 .include "draw_pokeballs.asm"
 .include "draw_charmander.asm"
+.include "draw_you_win.asm"
+.include "draw_game_over.asm"
 
 # Constants
 .eqv  	DISPLAY_BASE 0x10008000
@@ -54,7 +58,8 @@
 .eqv 	D_ORANGE 0xad4304
 .eqv 	L_ORANGE 0xf85d00
 .eqv 	YELLOW 0xf8e100
-.eqv 	D_GREEN 0x02754f	
+.eqv 	D_GREEN 0x02754f
+.eqv 	BLACK 0x000000	
 
 .data
 
@@ -74,8 +79,63 @@ main:
 	la $s4, GAME_STATE
 	li $s7, DISPLAY_BASE
 	
-	jal decrease_lives
+	j menu_go
 	
+menu_go:
+	jal draw_menu_go
+menu_go_check:	
+	li $t9, 0xffff0000  
+	lw $t8, 0($t9) 
+	bne $t8, 1, menu_go_check
+	
+	lw $t8, 4($t9)
+	beq $t8, 0x71, menu_quit	# checks if 'q' is pressed
+	beq $t8, 0x65, start_game	# checks if 'e' is pressed
+	beq $t8, 0x70, quit		# checks if 'p' is pressed
+	
+	j menu_go_check
+	
+menu_quit:
+	jal draw_menu_quit
+menu_quit_check:
+	li $t9, 0xffff0000  
+	lw $t8, 0($t9) 
+	bne $t8, 1, menu_quit_check
+	
+	lw $t8, 4($t9)
+	beq $t8, 0x67, menu_go		# checks if 'g' is pressed
+	beq $t8, 0x65, quit		# checks if 'e' is pressed
+	beq $t8, 0x70, quit		# checks if 'p' is pressed
+	
+	j menu_quit_check
+	
+restart:
+	li $t0, 0
+	sw $t0, 0($s4)
+	li $t0, 4
+	sw $t0, 4($s4)
+	
+	j menu_go
+	
+quit:
+	li $t0, BLACK
+	li $t1, 0 					
+	move $t2, $s7	
+
+fill_black:	
+	beq $t1, 4096, exit
+	sw $t0, 0($t2)
+	addi $t1, $t1, 1			
+	addi $t2, $t2, 4
+	j fill_black
+	
+exit:
+	li $v0, 10 
+ 	syscall
+
+start_game:
+	jal decrease_lives
+			
 load_next_level:
 	la $t0, GAME_STATE
 	lw $t1, 0($t0)
@@ -139,7 +199,22 @@ level3:
 	
 	j main_loop
 you_win:
-	j respawn
+	jal draw_you_win
+	j game_finished_check
+game_over:
+	jal draw_game_over
+	j game_finished_check
+game_finished_check:
+	li $t9, 0xffff0000  
+	lw $t8, 0($t9) 
+	bne $t8, 1, game_finished_check
+	
+	lw $t8, 4($t9)
+	beq $t8, 0x72, restart	# ASCII code of 'r'
+	beq $t8, 0x70, quit	# ASCII code of 'p'
+	
+	j game_finished_check
+	
 	
 decrease_lives:
 	lw $t0, 4($s4)
@@ -150,13 +225,7 @@ decrease_lives:
 	beq $t0, 2, draw_2_pokeballs
 	beq $t0, 1, draw_1_pokeball
 	beq $t0, 0, game_over	
-	
-game_over:
-	li $t0, 4
-	sw $t0, 4($s4)
-	
-	j decrease_lives
-	
+		
 main_loop: 	
 	lw $t0, 0($s1) 				
 	lw $t1, 4($s1)
@@ -274,13 +343,11 @@ key_action:
 	beq $t8, 0x61, key_left   	# checks if 'a' is pressed
 	beq $t8, 0x64, key_right   	# checks if 'd' is pressed
 	beq $t8, 0x77, key_up   	# checks if 'w' is pressed
-	beq $t8, 0x70, restart   	# checks if 'p' is pressed
+	beq $t8, 0x72, restart   	# checks if 'r' is pressed
+	beq $t8, 0x70, quit		# checks if 'p' is pressed
 	
 	
-	j gravity_collision_check
-	
-restart:
-	j main 
+	j gravity_collision_check 
 	
 key_left:
 	#if touching left boundary, skip
