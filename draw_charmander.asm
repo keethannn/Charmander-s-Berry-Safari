@@ -11,13 +11,13 @@
 
 
 die_charmander:
-	li $t1, DIE
-	li $t2, DIE
-	li $t3, DIE
-	li $t4, DIE
-	li $t5, DIE
-	li $t6, DIE
-	li $t7, DIE
+	li $t1, DD_RED
+	li $t2, D_RED
+	li $t3, L_RED
+	li $t4, D_ORANGE
+	li $t5, L_ORANGE
+	li $t6, YELLOW
+	li $t7, D_GREEN
 	lw $t8, 8($s3)
 	
 	beq $t8, 0, charmander_left_static

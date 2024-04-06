@@ -313,39 +313,8 @@ fall_in_liquid:
 	
 	jal decrease_lives
 	
-	jal erase_charmander
-	
-	li $v0, 32 
-	li $a0, 100   			
-	syscall
-	
-	jal die_charmander
-	
-	li $v0, 32 
-	li $a0, 100  			
-	syscall
-	
-	jal erase_charmander
-	
-	li $v0, 32 
-	li $a0, 100   			
-	syscall
-	
-	jal die_charmander
-	
-	li $v0, 32 
-	li $a0, 100  			
-	syscall
-	
-	jal erase_charmander
-	
-	li $v0, 32 
-	li $a0, 100   			
-	syscall
-	
 	jal die_charmander
 
-end_flash:	
 	li $v0, 32 
 	li $a0, 500 			
 	syscall
@@ -681,7 +650,6 @@ static_on_above_collision:
 
 above_collision_state:
 	sw $zero, 8($s2)
-	sw $zero, 4($s3)
 	
 	lw $t0, 12($s2)
 	beq $t0, 0, fall_state
