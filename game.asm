@@ -33,7 +33,10 @@
 # - (write here, if any)
 #
 #####################################################################
-.include "draw_level.asm"
+.include "draw_level_1.asm"
+.include "draw_level_2.asm"
+.include "draw_level_3.asm"
+.include "draw_pokeballs.asm"
 .include "draw_charmander.asm"
 
 # Constants
@@ -42,7 +45,9 @@
 .eqv  	SLEEP_TIME 40
 .eqv	MAX_JUMP_HEIGHT 13
 
-.eqv 	BACKGROUND 0xbfedff
+.eqv 	BLUE_BACKGROUND 0xbfedff
+.eqv    ORANGE_BACKGROUND 0xff8100
+.eqv 	PURPLE_BACKGROUND 0x6d00b3
 .eqv 	DD_RED 0x300000
 .eqv 	D_RED 0xb30000
 .eqv 	L_RED 0xc83636
@@ -54,10 +59,10 @@
 .data
 
 # Data
-CHARMANDER_XY: .word 0, 12, 0, 0 #[current x, current y, previous unit-coordinate, new unit coordinate]
+CHARMANDER_XY: .word 0, 0, 0, 0 #[current x, current y, previous unit-coordinate, new unit coordinate]
 CHARMANDER_DIRECTION_STATE: .word 1, 1, 0, 1   #[{0 if left, 1 if stationary, 2 if right}, {0 if falling, 1 if stationary, 2 if up}, {jump iteration}, {0 if no floor, 1 if on floor}]
 SPRITE_ANIMATION: .word 0,0,1 #[movement iteration: 0-3 , jump: 0-1, direction facing: 0-1]
-GAME_STATE: .word 0, 3, 0, 12, 0, 0 #[stage: 0-3, lives: 0-3, spawn-x:0-55, spawn-y:10-63, background:color-code, berry color: color-code]
+GAME_STATE: .word 0, 4, 0, 0, 0, 0 #[level: 0-3, lives: 0-3, spawn-x:0-55, spawn-y:10-63, background:color-code, berry color: color-code]
 
 .text
 .globl 	main
@@ -69,8 +74,89 @@ main:
 	la $s4, GAME_STATE
 	li $s7, DISPLAY_BASE
 	
-	jal draw_level
-
+	jal decrease_lives
+	
+load_next_level:
+	la $t0, GAME_STATE
+	lw $t1, 0($t0)
+	addi $t1, $t1, 1
+	sw $t1, 0($t0)
+	 
+	beq $t1, 1, level1
+	beq $t1, 2, level2
+	beq $t1, 3, level3
+	beq $t1, 4, you_win
+	
+	j main_loop
+	
+level1:
+	jal draw_level_1
+	li $t0, 0
+	sw $t0, 0($s1)
+	sw $t0, 8($s4)
+	li $t0, 34
+	sw $t0, 4($s1)
+	sw $t0, 12($s4)
+	li $t0, 1
+	sw $t0, 8($s3)
+	li $t0, 0x9b731b
+	sw $t0, 20($s4)
+	li $t0, BLUE_BACKGROUND
+	sw $t0, 16($s4) 
+	
+	j main_loop
+	
+level2:
+	jal draw_level_2
+	li $t0, 0
+	sw $t0, 0($s1)
+	sw $t0, 8($s4)
+	li $t0, 12
+	sw $t0, 4($s1)
+	sw $t0, 12($s4)
+	li $t0, 1
+	sw $t0, 8($s3)
+	li $t0, 0x780f32
+	sw $t0, 20($s4)
+	li $t0, ORANGE_BACKGROUND
+	sw $t0, 16($s4) 
+	
+	j main_loop
+level3:
+	jal draw_level_3
+	li $t0, 54
+	sw $t0, 0($s1)
+	sw $t0, 8($s4)
+	li $t0, 37
+	sw $t0, 4($s1)
+	sw $t0, 12($s4)
+	li $t0, 0
+	sw $t0, 8($s3)
+	li $t0, 0x21111c
+	sw $t0, 20($s4)
+	li $t0, PURPLE_BACKGROUND
+	sw $t0, 16($s4)
+	
+	j main_loop
+you_win:
+	j respawn
+	
+decrease_lives:
+	lw $t0, 4($s4)
+	addi $t0, $t0, -1
+	sw $t0, 4($s4)
+	
+	beq $t0, 3, draw_3_pokeballs
+	beq $t0, 2, draw_2_pokeballs
+	beq $t0, 1, draw_1_pokeball
+	beq $t0, 0, game_over	
+	
+game_over:
+	li $t0, 4
+	sw $t0, 4($s4)
+	
+	j decrease_lives
+	
 main_loop: 	
 	lw $t0, 0($s1) 				
 	lw $t1, 4($s1)
@@ -89,21 +175,86 @@ check_if_in_liquid:
 	lw $t1, 4($s1)
 	bge $t1, 45, fall_in_liquid
 	
+check_if_touching_berry:
+	addi $t1, $s0, -4	#check pixels to the left of player
+	lw $t0, 20($s4)
+	
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+		
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+			
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+		
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+		
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+	
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+
+	addi $t1, $t1, 256
+	lw $t2, 0($t1)
+	beq $t2, $t0, load_next_level
+	lw $t2, 40($t1)
+	beq $t2, $t0, load_next_level
+	
 	j key_action
 	
 fall_in_liquid:
+	
+	jal decrease_lives
 	
 	jal die_charmander
 
 	li $v0, 32 
 	li $a0, 500 			
 	syscall
-	
-	jal erase_charmander
 		
 	j respawn
 
 respawn: 
+	jal erase_charmander
+
 	lw $t0, 8($s4) 				
 	lw $t1, 12($s4)
 	
@@ -138,45 +289,47 @@ key_left:
 	#set previous y-coordinate to potential 1d marker and check for collisions
 	addi $t1, $s0, -4
 	
+	lw $t3, 16($s4)
+	
 	# check all pixels to the left of sprite
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check	
+	bne $t2, $t3, gravity_collision_check
 	
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check	
+	bne $t2, $t3, gravity_collision_check	
 	
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check		
+	bne $t2, $t3, gravity_collision_check		
 	
 	addi $s0, $s0, -4	#update unit coordinate
 	addi $t0, $t0, -1	#update charmander location
@@ -195,45 +348,47 @@ key_right:
 	#set previous y-coordinate to potential 1d marker and check for collisions
 	addi $t1, $s0, 36
 	
+	lw $t3, 16($s4)
+	
 	# check all pixels to the right of sprite
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 		
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check	
+	bne $t2, $t3, gravity_collision_check		
 	
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check	
+	bne $t2, $t3, gravity_collision_check		
 	
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 
 	addi $t1, $t1, 256
 	lw $t2, 0($t1)
-	bne $t2, BACKGROUND, gravity_collision_check
+	bne $t2, $t3, gravity_collision_check	
 	
 	addi $s0, $s0, 4
 	addi $t0, $t0, 1
@@ -272,33 +427,35 @@ gravity_collision_check:
 below_collision:
 	addi $t1, $s0, 2560
 	
+	lw $t3 16($s4)
+	
 	#check all pixels below sprite
 	lw $t2, 0($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 4($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 8($t1)				
-	bne $t2, BACKGROUND, floor_below	
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 12($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 16($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 20($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 24($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 28($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	lw $t2, 32($t1)				
-	bne $t2, BACKGROUND, floor_below
+	bne $t2, $t3, floor_below
 	
 	li $t1, 0		#set below_floor status to no
 	sw $t1, 12($s2)
@@ -347,33 +504,35 @@ floor_below:
 floor_above:
 	subi $t1, $s0, 256
 	
+	lw $t3, 16($s4)
+	
 	#check all pixels above sprite
 	lw $t2, 0($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 
 	lw $t2, 4($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 	
 	lw $t2, 8($t1)				
-	bne $t2, BACKGROUND, above_collision_state	
+	bne $t2, $t3, above_collision_state
 	
 	lw $t2, 12($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 
 	lw $t2, 16($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 	
 	lw $t2, 20($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 	
 	lw $t2, 24($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 
 	lw $t2, 28($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 	
 	lw $t2, 32($t1)				
-	bne $t2, BACKGROUND, above_collision_state
+	bne $t2, $t3, above_collision_state
 	
 	#set sprite to be jumping animation
 	li $t0, 1
@@ -381,34 +540,37 @@ floor_above:
 	
 	subi $t1, $t1, 256
 
-check_if_one_below_floor: 
+check_if_one_below_floor:
+
+ 	lw $t3, 16($s4)
+ 	  
 	#check if sprite is about to touch top, and switch to static
 	lw $t2, 0($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 
 	lw $t2, 4($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 	
 	lw $t2, 8($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision	
+	bne $t2, $t3, static_on_above_collision
 	
 	lw $t2, 12($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 
 	lw $t2, 16($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 	
 	lw $t2, 20($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 	
 	lw $t2, 24($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 
 	lw $t2, 28($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 	
 	lw $t2, 32($t1)				
-	bne $t2, BACKGROUND, static_on_above_collision
+	bne $t2, $t3, static_on_above_collision
 	
 	j shift_up
 	

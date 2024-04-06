@@ -25,7 +25,7 @@ die_charmander:
 
 erase_charmander:
 	
-	li $t0, BACKGROUND
+	lw $t0, 16($s4)
 	move $t1, $s0
 	j draw_block
 
@@ -152,13 +152,14 @@ draw_block:
 	jr $ra
 	
 set_charmander_background:
-	li $t1, BACKGROUND
-	li $t2, BACKGROUND
-	li $t3, BACKGROUND
-	li $t4, BACKGROUND
-	li $t5, BACKGROUND
-	li $t6, BACKGROUND
-	li $t7, BACKGROUND
+	
+	lw $t1, 16($s4)
+	lw $t2, 16($s4)
+	lw $t3, 16($s4)
+	lw $t4, 16($s4)
+	lw $t5, 16($s4)
+	lw $t6, 16($s4)
+	lw $t7, 16($s4)
 	
 	jr $ra
 

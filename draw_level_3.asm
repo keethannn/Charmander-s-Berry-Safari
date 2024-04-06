@@ -1,3 +1,4 @@
+draw_level_3:
 li $t9 0x6d00b3
 sw $t9 2560($s7)
 sw $t9 2564($s7)
@@ -4133,3 +4134,4 @@ li $t9 0x8d51a5
 sw $t9 16376($s7)
 li $t9 0x9455ad
 sw $t9 16380($s7)
+jr $ra
