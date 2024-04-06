@@ -14,14 +14,13 @@
 #
 # Which milestoneshave been reached in this submission?
 # (See the assignment handout for descriptions of the milestones)
-# - Milestone 1/2/3/4 (choose the one the applies)
+# - Milestone 4
 #
-# Which approved features have been implemented for milestone 3?
+# Which approved features have been implemented for milestone 4?
 # (See the assignment handout for the list of additional features)
-# 1. (fill in the feature, if any)
-# 2. (fill in the feature, if any)
-# 3. (fill in the feature, if any)
-# ... (add more if necessary)
+# 1. Different Levels [2 marks]
+# 2. Animated Sprites [2 marks]
+# 3. Start Menu [1 mark]
 #
 # Link to video demonstration for final submission:
 # - (insert YouTube / MyMedia / other URL here). Make sure we can view it!
@@ -30,7 +29,10 @@
 # - yes, and please share this project github link as well!
 #
 # Any additional information that the TA needs to know:
-# - (write here, if any)
+# - Toggle: Tools > Assemble all files in directory
+# - Toggle: Tools > Initialize Program Counter to global 'main' if defined
+# - In main menu, click 'g' to toggle "go", and 'q' to select "quit", and click 'e' to proceed with highlighted option
+# - At any time, click 'r' to restart and 'p' to quit 
 #
 #####################################################################
 .include "draw_level_1.asm"
@@ -73,6 +75,7 @@ GAME_STATE: .word 0, 4, 0, 0, 0, 0 #[level: 0-3, lives: 0-3, spawn-x:0-55, spawn
 .globl 	main
 
 main:	
+	# store array addresses for easy access
 	la $s1, CHARMANDER_XY
 	la $s2, CHARMANDER_DIRECTION_STATE
 	la $s3, SPRITE_ANIMATION
@@ -80,13 +83,14 @@ main:
 	li $s7, DISPLAY_BASE
 	
 	j menu_go
-	
+
+#start menu implementation	
 menu_go:
 	jal draw_menu_go
 menu_go_check:	
-	li $t9, 0xffff0000  
+	li $t9, 0xffff0000		
 	lw $t8, 0($t9) 
-	bne $t8, 1, menu_go_check
+	bne $t8, 1, menu_go_check	# if no input, don't check
 	
 	lw $t8, 4($t9)
 	beq $t8, 0x71, menu_quit	# checks if 'q' is pressed
@@ -100,7 +104,7 @@ menu_quit:
 menu_quit_check:
 	li $t9, 0xffff0000  
 	lw $t8, 0($t9) 
-	bne $t8, 1, menu_quit_check
+	bne $t8, 1, menu_quit_check	# if no input, don't check
 	
 	lw $t8, 4($t9)
 	beq $t8, 0x67, menu_go		# checks if 'g' is pressed
@@ -110,19 +114,19 @@ menu_quit_check:
 	j menu_quit_check
 	
 restart:
-	li $t0, 0
+	li $t0, 0			#reset level
 	sw $t0, 0($s4)
-	li $t0, 4
+	li $t0, 4			#reset hearts
 	sw $t0, 4($s4)
 	
 	j menu_go
 	
 quit:
-	li $t0, BLACK
+	li $t0, BLACK			#make screen black on quit
 	li $t1, 0 					
 	move $t2, $s7	
 
-fill_black:	
+fill_black:				#loop over every row
 	beq $t1, 4096, exit
 	sw $t0, 0($t2)
 	addi $t1, $t1, 1			
@@ -133,10 +137,10 @@ exit:
 	li $v0, 10 
  	syscall
 
-start_game:
+start_game:				#display number of lives
 	jal decrease_lives
 			
-load_next_level:
+load_next_level:			#load next level
 	la $t0, GAME_STATE
 	lw $t1, 0($t0)
 	addi $t1, $t1, 1
@@ -149,103 +153,109 @@ load_next_level:
 	
 	j main_loop
 	
-level1:
+level1:					
 	jal draw_level_1
-	li $t0, 0
+	li $t0, 0			#set charmander x-coordinate and respawn x-coordinate
 	sw $t0, 0($s1)
 	sw $t0, 8($s4)
-	li $t0, 34
+	li $t0, 34			#set charmander y-coordinate and respawn y-coordinate
 	sw $t0, 4($s1)
 	sw $t0, 12($s4)
-	li $t0, 1
+	li $t0, 1			#set to face right direction
 	sw $t0, 8($s3)
-	li $t0, 0x9b731b
+	li $t0, 0x9b731b		#set berry color
 	sw $t0, 20($s4)
-	li $t0, BLUE_BACKGROUND
+	li $t0, BLUE_BACKGROUND		#set background color
 	sw $t0, 16($s4) 
 	
 	j main_loop
 	
 level2:
 	jal draw_level_2
-	li $t0, 0
+	li $t0, 0			#set charmander x-coordinate and respawn x-coordinate
 	sw $t0, 0($s1)
 	sw $t0, 8($s4)
-	li $t0, 12
+	li $t0, 12			#set charmander y-coordinate and respawn y-coordinate
 	sw $t0, 4($s1)
 	sw $t0, 12($s4)
-	li $t0, 1
+	li $t0, 1			#set to face right direction
 	sw $t0, 8($s3)
-	li $t0, 0x780f32
-	sw $t0, 20($s4)
-	li $t0, ORANGE_BACKGROUND
+	li $t0, 0x780f32		#set berry color
+	sw $t0, 20($s4)			
+	li $t0, ORANGE_BACKGROUND	#set background color
 	sw $t0, 16($s4) 
 	
 	j main_loop
+
 level3:
 	jal draw_level_3
-	li $t0, 54
+	li $t0, 54			#set charmander x-coordinate and respawn x-coordinate
 	sw $t0, 0($s1)
 	sw $t0, 8($s4)
-	li $t0, 37
+	li $t0, 37			#set charmander y-coordinate and respawn y-coordinate
 	sw $t0, 4($s1)
 	sw $t0, 12($s4)
-	li $t0, 0
+	li $t0, 0			#set to face left direction
 	sw $t0, 8($s3)
-	li $t0, 0x21111c
+	li $t0, 0x21111c		#set berry color
 	sw $t0, 20($s4)
-	li $t0, PURPLE_BACKGROUND
+	li $t0, PURPLE_BACKGROUND	#set background color
 	sw $t0, 16($s4)
 	
 	j main_loop
+
 you_win:
-	jal draw_you_win
+	jal draw_you_win		#draw win screen
 	j game_finished_check
+
 game_over:
-	jal draw_game_over
+	jal draw_game_over		#draw lose screen
 	j game_finished_check
+
 game_finished_check:
 	li $t9, 0xffff0000  
 	lw $t8, 0($t9) 
-	bne $t8, 1, game_finished_check
+	bne $t8, 1, game_finished_check	#if no input then revisit loop
 	
 	lw $t8, 4($t9)
-	beq $t8, 0x72, restart	# ASCII code of 'r'
-	beq $t8, 0x70, quit	# ASCII code of 'p'
+	beq $t8, 0x72, restart		# check if 'r' is pressed
+	beq $t8, 0x70, quit		# check if 'p' is pressed
 	
 	j game_finished_check
 	
 	
 decrease_lives:
-	lw $t0, 4($s4)
+	lw $t0, 4($s4)			#decrease number of lives
 	addi $t0, $t0, -1
 	sw $t0, 4($s4)
 	
+	#draw number of pokeballs depending on lives
 	beq $t0, 3, draw_3_pokeballs
 	beq $t0, 2, draw_2_pokeballs
 	beq $t0, 1, draw_1_pokeball
+	#if no more lives, then game over
 	beq $t0, 0, game_over	
 		
 main_loop: 	
-	lw $t0, 0($s1) 				
-	lw $t1, 4($s1)
+	lw $t0, 0($s1) 			#load x-coordinate			
+	lw $t1, 4($s1)			#load y-coordinate
 	
 	li $t2, 4
-	mult $t0, $t2 		#find x pixel coordinate
+	mult $t0, $t2 			#find x pixel coordinate
 	mflo $t0
 	li $t2, 256
 	mult $t1, $t2
-	mflo $t1 		#find y pixel coordinate
+	mflo $t1 			#find y pixel coordinate
 	addi $s0, $t0, DISPLAY_BASE 	#add coordinates to display base for top-left of sprite
 	add $s0, $s0, $t1		
 	sw $s0, 8($s1)			#store this coordinate before updating
 	
 check_if_in_liquid:
-	lw $t1, 4($s1)
+	lw $t1, 4($s1)			#if y-coordinate is below this point, then charmander is dead
 	bge $t1, 45, fall_in_liquid
 	
 check_if_touching_berry:
-	addi $t1, $s0, -4	#check pixels to the left of player
+	addi $t1, $s0, -4		#check pixels to the left of player
 	lw $t0, 20($s4)
 	
 	lw $t2, 0($t1)
@@ -311,8 +321,11 @@ check_if_touching_berry:
 	
 fall_in_liquid:
 	
-	jal decrease_lives
+
+	jal decrease_lives		
 	
+	
+	#if fallen into lava, flash sprite and then respawn
 	jal erase_charmander
 	
 	li $v0, 32 
@@ -353,11 +366,14 @@ end_flash:
 	j respawn
 
 respawn: 
+	#erase previous point of charmander
 	jal erase_charmander
 
+	#load spawn location for this stage
 	lw $t0, 8($s4) 				
 	lw $t1, 12($s4)
 	
+	#change charmander co-ordinate to this level's spawn location
 	sw $t0, 0($s1)
 	sw $t1, 4($s1)
 	
@@ -366,7 +382,7 @@ respawn:
 key_action: 
 	li $t9, 0xffff0000  
 	lw $t8, 0($t9) 
-	bne $t8, 1, gravity_collision_check 
+	bne $t8, 1, gravity_collision_check	#if no input, then check gravity
 	lw $t0, 0($s1) 			# load x coordinate	
 	lw $t1, 4($s1)			# load y coordinate
 	
@@ -555,10 +571,12 @@ below_collision:
 	lw $t2, 32($t1)				
 	bne $t2, $t3, floor_below
 	
-	li $t1, 0		#set below_floor status to no
+	#set below_floor status to no
+	li $t1, 0		
 	sw $t1, 12($s2)
 
-	lw $t1, 8($s2)		#check if in middle of jump
+	#check if in middle of jump
+	lw $t1, 8($s2)		
 	bne $t1, 0, is_jump_apex
 	j fall_state 
 	
@@ -571,7 +589,7 @@ fall_state:
 	sw $t0, 4($s2)
 
 shift_down:	
-	#offset y coordinate 1 unit down 
+	#offset charmander y-coordinate 1 pixel down 
 	lw $t0, 4($s1)
 	addi $t0, $t0, 1
 	sw $t0, 4($s1)
@@ -583,11 +601,14 @@ shift_down:
 	
 floor_below:
 	
+	#store that charmander is on floor
 	li $t0, 1
 	sw $t0, 12($s2)
+	
 	#reset jump iteration
 	sw $zero, 8($s2)
 	
+	#if vertical state is jump, check for floor above
 	lw $t0, 4($s2)
 	beq $t0, 2, floor_above
 	
@@ -680,12 +701,15 @@ static_on_above_collision:
 	j shift_up
 
 above_collision_state:
+	#reset jump iteration and set jump value for sprite to no jump
 	sw $zero, 8($s2)
 	sw $zero, 4($s3)
 	
+	#if not on floor, then fall
 	lw $t0, 12($s2)
 	beq $t0, 0, fall_state
 	
+	#set horizontal state to stationary
 	li $t0, 1 
 	sw $t0, 4($s2) 
 	
@@ -700,10 +724,12 @@ shift_up:
 	# decrement unit-coordinate
 	subi $s0, $s0, 256
 	
+	#decrement y-coordinate
 	lw $t0, 4($s1)
 	subi $t0, $t0, 1
 	sw $t0, 4($s1)
 	
+	#increment jump iteration
 	lw $t0, 8($s2)
 	addi $t0, $t0, 1
 	sw $t0, 8($s2)
@@ -742,7 +768,7 @@ redraw_charmander:
 		beq $t1, 2, left_static_iteration
 		beq $t1, 3, left_right_iteration
 		
-		face_left_jump:
+	face_left_jump:
 			li $t2, 0
 			sw $t2, 4($s3)
 			
@@ -752,21 +778,21 @@ redraw_charmander:
 			
 			j loop_end
 		
-		left_static_iteration:
+	left_static_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_left_static
 			
 			j loop_end
 		
-		left_left_iteration:
+	left_left_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_left_left
 			
 			j loop_end
 			
-		left_right_iteration:
+	left_right_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_left_right
@@ -781,7 +807,7 @@ redraw_charmander:
 		beq $t1, 2, right_static_iteration
 		beq $t1, 3, right_right_iteration
 		
-		face_right_jump:
+	face_right_jump:
 			li $t2, 0
 			sw $t2, 4($s3)
 			
@@ -791,21 +817,21 @@ redraw_charmander:
 			
 			j loop_end
 	
-		right_static_iteration:
+	right_static_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_right_static
 			
 			j loop_end
 			
-		right_left_iteration:
+	right_left_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_right_left
 			
 			j loop_end
 			
-		right_right_iteration:
+	right_right_iteration:
 			jal set_charmander_colors
 		
 			jal charmander_right_right
@@ -813,7 +839,7 @@ redraw_charmander:
 			j loop_end   
 			
 loop_end:
-	#reset horizontal and vertical direction
+	#reset horizontal and vertical direction to stationary for next iteration
 	li $t0, 1
 	sw $t0, 0($s2)
 	sw $t0, 4($s2)
